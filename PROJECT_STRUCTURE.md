@@ -33,11 +33,13 @@ ofadmin/
 ## 🎯 Key Features
 
 ### 1. **Phone Number with Auto +91 Prefix**
+
 - The phone input automatically adds +91 prefix
 - Users only need to enter the 10-digit number
 - Stored with prefix in database
 
 ### 2. **Modern Tag-Based Input**
+
 - No more comma-separated values!
 - **Specializations**: Add items like "Anxiety", "Depression" individually
 - **Languages**: Add language codes like "en", "hi", "es" one by one
@@ -45,6 +47,7 @@ ofadmin/
 - Click X to remove tags
 
 ### 3. **Date of Birth Field**
+
 - New date picker field added
 - Stored in `date_of_birth` column in database
 
@@ -53,14 +56,16 @@ ofadmin/
 ### Adding a New Input Field
 
 1. **Update Constants** (`lib/constants.js`):
+
 ```javascript
 export const initialFormState = {
   // ... existing fields
-  new_field: "",  // Add your field
+  new_field: "", // Add your field
 };
 ```
 
 2. **Add to Form Step** (e.g., `components/forms/BasicInfoStep.jsx`):
+
 ```jsx
 <Input
   label="New Field"
@@ -71,6 +76,7 @@ export const initialFormState = {
 ```
 
 3. **Update Submit Handler** (`app/page.jsx` - handleSubmit):
+
 ```javascript
 const newCounselorData = {
   // ... existing fields
@@ -81,18 +87,16 @@ const newCounselorData = {
 ### Creating a New Component
 
 All components are modular. Example:
+
 ```jsx
 // components/MyNewComponent.jsx
 export const MyNewComponent = ({ prop1, prop2 }) => {
-  return (
-    <div>
-      {/* Your component JSX */}
-    </div>
-  );
+  return <div>{/* Your component JSX */}</div>;
 };
 ```
 
 Then import and use:
+
 ```jsx
 import { MyNewComponent } from "@/components/MyNewComponent";
 ```
@@ -102,7 +106,9 @@ import { MyNewComponent } from "@/components/MyNewComponent";
 ### UI Components (`components/ui/`)
 
 #### Input
+
 Standard text input with label and validation.
+
 ```jsx
 <Input
   label="Field Name"
@@ -115,18 +121,22 @@ Standard text input with label and validation.
 ```
 
 #### PhoneInput
+
 Phone input with automatic +91 prefix.
+
 ```jsx
 <PhoneInput
   label="Phone Number"
   id="phone_number"
-  value={phoneNumber}  // Without prefix
+  value={phoneNumber} // Without prefix
   onChange={handleChange}
 />
 ```
 
 #### TagInput
+
 Array input with tag interface.
+
 ```jsx
 <TagInput
   label="Tags"
@@ -141,6 +151,7 @@ Array input with tag interface.
 ### Form Steps (`components/forms/`)
 
 Each step is a separate component for better organization:
+
 - **BasicInfoStep**: Name, email, phone, DOB, avatar, bio
 - **ProfessionalDetailsStep**: License, experience, specializations, languages
 - **RatesAndSettingsStep**: Pricing and service toggles
@@ -160,6 +171,7 @@ npm run dev
 ## 🔑 Environment Variables
 
 Create a `.env.local` file:
+
 ```
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
@@ -168,6 +180,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
 ## 📊 Database Schema
 
 The `counselors` table includes:
+
 - Basic info: full_name, email, phone_number, avatar_url, bio
 - **date_of_birth** (DATE) - newly added
 - Professional: license_number, years_of_experience
@@ -178,6 +191,7 @@ The `counselors` table includes:
 ## 🎨 Styling
 
 Using Tailwind CSS classes throughout. All components follow the same design system with:
+
 - Indigo primary color
 - Slate gray for backgrounds
 - Consistent spacing and shadows

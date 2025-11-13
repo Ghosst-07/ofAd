@@ -1,15 +1,15 @@
 export const Stepper = ({ currentStep }) => {
   const steps = [
-    { id: 1, name: "Basic Info" },
-    { id: 2, name: "Professional" },
-    { id: 3, name: "Rates & Settings" },
+    { id: 1, name: "Basic", fullName: "Basic Info" },
+    { id: 2, name: "Professional", fullName: "Professional Details" },
+    { id: 3, name: "Rates", fullName: "Rates & Settings" },
   ];
 
   return (
-    <nav aria-label="Progress" className="mb-12">
+    <nav aria-label="Progress" className="mb-6 sm:mb-8 lg:mb-12">
       <ol
         role="list"
-        className="grid grid-cols-3 overflow-hidden rounded-md border border-gray-200 bg-white shadow-sm"
+        className="grid grid-cols-3 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm"
       >
         {steps.map((step, stepIdx) => (
           <li key={step.name} className="relative overflow-hidden">
@@ -17,20 +17,20 @@ export const Stepper = ({ currentStep }) => {
               className={`
               ${currentStep > step.id ? "bg-indigo-600" : ""}
               ${currentStep === step.id ? "border-indigo-600" : ""}
-              ${stepIdx === 0 ? "rounded-l-md" : ""}
-              ${stepIdx === steps.length - 1 ? "rounded-r-md" : ""}
+              ${stepIdx === 0 ? "rounded-l-lg" : ""}
+              ${stepIdx === steps.length - 1 ? "rounded-r-lg" : ""}
               ${
                 currentStep === step.id
                   ? "border-b-4"
                   : "border-b-4 border-transparent"
               }
-              p-4 text-center text-sm font-medium
+              p-2 sm:p-4 text-center text-xs sm:text-sm font-medium
             `}
             >
               {currentStep > step.id ? (
-                <span className="flex items-center justify-center text-white">
+                <span className="flex items-center justify-center gap-1 text-white">
                   <svg
-                    className="h-5 w-5"
+                    className="h-4 w-4 sm:h-5 sm:w-5"
                     viewBox="0 0 20 20"
                     fill="currentColor"
                   >
@@ -40,7 +40,8 @@ export const Stepper = ({ currentStep }) => {
                       clipRule="evenodd"
                     />
                   </svg>
-                  {step.name}
+                  <span className="hidden sm:inline">{step.fullName}</span>
+                  <span className="sm:hidden">{step.name}</span>
                 </span>
               ) : (
                 <span
@@ -50,7 +51,8 @@ export const Stepper = ({ currentStep }) => {
                       : "text-slate-700"
                   }
                 >
-                  {step.name}
+                  <span className="hidden sm:inline">{step.fullName}</span>
+                  <span className="sm:hidden">{step.name}</span>
                 </span>
               )}
             </div>

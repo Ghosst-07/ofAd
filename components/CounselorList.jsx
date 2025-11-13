@@ -75,16 +75,16 @@ export const CounselorList = ({
       )}
 
       {counselors.length > 0 && (
-        <div className="bg-white rounded-xl shadow-sm ring-1 ring-slate-900/5 overflow-hidden">
+        <div className="bg-white rounded-lg sm:rounded-xl shadow-sm ring-1 ring-slate-900/5 overflow-hidden">
           <ul role="list" className="divide-y divide-gray-200">
             {counselors.map((counselor) => (
               <li
                 key={counselor.id}
-                className="flex items-center justify-between gap-x-6 p-4 hover:bg-gray-50"
+                className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-x-6 p-3 sm:p-4 hover:bg-gray-50 transition-colors"
               >
-                <div className="flex min-w-0 gap-x-4">
+                <div className="flex min-w-0 gap-x-3 sm:gap-x-4">
                   <img
-                    className="h-12 w-12 flex-none rounded-full bg-gray-50 object-cover"
+                    className="h-10 w-10 sm:h-12 sm:w-12 flex-none rounded-full bg-gray-50 object-cover"
                     src={
                       counselor.avatar_url ||
                       "https://placehold.co/100x100/E2E8F0/475569?text=??"
@@ -92,19 +92,41 @@ export const CounselorList = ({
                     alt=""
                   />
                   <div className="min-w-0 flex-auto">
-                    <p className="text-sm font-semibold leading-6 text-gray-900">
+                    <p className="text-sm sm:text-base font-semibold leading-6 text-gray-900">
                       {counselor.full_name}
                     </p>
-                    <p className="mt-1 truncate text-xs leading-5 text-gray-500">
+                    <p className="mt-0.5 sm:mt-1 truncate text-xs leading-5 text-gray-500">
                       {counselor.email || "No email"}
                     </p>
-                    <p className="mt-1 truncate text-xs leading-5 text-gray-500">
+                    <p className="mt-0.5 sm:mt-1 truncate text-xs leading-5 text-gray-500">
                       {PHONE_PREFIX}
                       {counselor.phone_number}
                     </p>
+                    {/* Mobile status badges */}
+                    <div className="flex sm:hidden items-center gap-x-3 mt-2">
+                      {counselor.is_active ? (
+                        <div className="flex items-center gap-x-1.5">
+                          <div className="flex-none rounded-full bg-green-500/20 p-1">
+                            <div className="h-1.5 w-1.5 rounded-full bg-green-500" />
+                          </div>
+                          <p className="text-xs leading-5 text-gray-500">
+                            Active
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-x-1.5">
+                          <div className="flex-none rounded-full bg-red-500/20 p-1">
+                            <div className="h-1.5 w-1.5 rounded-full bg-red-500" />
+                          </div>
+                          <p className="text-xs leading-5 text-gray-500">
+                            Inactive
+                          </p>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
-                <div className="flex flex-none items-center gap-x-4">
+                <div className="flex flex-none items-center justify-between sm:justify-end gap-x-3 sm:gap-x-4">
                   <div className="hidden sm:flex sm:flex-col sm:items-end">
                     {counselor.is_active ? (
                       <div className="mt-1 flex items-center gap-x-1.5">
@@ -133,7 +155,7 @@ export const CounselorList = ({
                   </div>
                   <button
                     onClick={() => onEdit(counselor)}
-                    className="rounded-md bg-white px-3 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+                    className="rounded-md bg-white px-3 py-1.5 text-xs sm:text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 active:bg-gray-100 transition-colors"
                   >
                     Edit
                   </button>

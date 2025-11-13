@@ -10,21 +10,21 @@ export const RatesAndSettingsStep = ({ formData, handleChange }) => {
   ];
 
   return (
-    <div className="grid grid-cols-1 gap-x-8 gap-y-8 md:grid-cols-3">
-      <div className="px-4 sm:px-0">
-        <h2 className="text-lg font-semibold leading-7 text-slate-900">
+    <div className="grid grid-cols-1 gap-6 lg:gap-8 lg:grid-cols-3">
+      <div className="px-0 sm:px-0">
+        <h2 className="text-base sm:text-lg font-semibold leading-7 text-slate-900">
           Rates & Platform Settings
         </h2>
-        <p className="mt-1 text-sm leading-6 text-slate-600">
+        <p className="mt-1 text-xs sm:text-sm leading-6 text-slate-600">
           Manage pricing and which services the counselor will offer.
         </p>
       </div>
 
-      <div className="bg-white shadow-sm ring-1 ring-slate-900/5 sm:rounded-xl md:col-span-2">
+      <div className="bg-white shadow-sm ring-1 ring-slate-900/5 rounded-lg sm:rounded-xl lg:col-span-2">
         <div className="p-4 sm:p-6">
           {/* Rates Grid */}
-          <div className="grid max-w-2xl grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6 mb-8">
-            <div className="sm:col-span-2">
+          <div className="grid max-w-2xl grid-cols-1 gap-x-4 gap-y-6 sm:gap-x-6 sm:grid-cols-3 mb-6 sm:mb-8">
+            <div className="col-span-full sm:col-span-1">
               <Input
                 label="Video Rate (per min)"
                 id="rate_video_per_minute"
@@ -35,7 +35,7 @@ export const RatesAndSettingsStep = ({ formData, handleChange }) => {
                 step="0.01"
               />
             </div>
-            <div className="sm:col-span-2">
+            <div className="col-span-full sm:col-span-1">
               <Input
                 label="Voice Rate (per min)"
                 id="rate_voice_per_minute"
@@ -46,7 +46,7 @@ export const RatesAndSettingsStep = ({ formData, handleChange }) => {
                 step="0.01"
               />
             </div>
-            <div className="sm:col-span-2">
+            <div className="col-span-full sm:col-span-1">
               <Input
                 label="Chat Rate (per min)"
                 id="rate_chat_per_minute"

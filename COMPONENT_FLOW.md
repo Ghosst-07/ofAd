@@ -43,6 +43,7 @@ App (page.jsx)
 ## Data Flow
 
 ### Adding/Editing Counselor
+
 1. User fills form → `formData` state
 2. Submit → `handleSubmit()`
 3. Phone number gets +91 prefix automatically
@@ -51,6 +52,7 @@ App (page.jsx)
 6. Success message shown
 
 ### Phone Number Handling
+
 ```
 User Input: "9876543210"
     ↓
@@ -66,6 +68,7 @@ Edit Mode: Removes prefix → "9876543210" in form
 ```
 
 ### Tag Input Flow
+
 ```
 User types "Anxiety" + Enter
     ↓
@@ -81,6 +84,7 @@ Click X → onRemove callback → filtered array
 ## State Management
 
 ### Main States
+
 - `formData`: Current form values
 - `counselors`: Array of all counselors
 - `currentTab`: "add" or "view"
@@ -89,6 +93,7 @@ Click X → onRemove callback → filtered array
 - `message`: { type: "success"|"error", content: "" }
 
 ### Form Reset Flow
+
 ```
 handleResetForm()
     ↓

@@ -3,6 +3,7 @@ import React, { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import { initialFormState, PHONE_PREFIX } from "@/lib/constants";
 import { UserPlusIcon, ListIcon } from "@/components/icons/Icons";
+import { MenuIcon, CloseIcon } from "@/components/icons/MenuIcons";
 import { Stepper } from "@/components/Stepper";
 import { BasicInfoStep } from "@/components/forms/BasicInfoStep";
 import { ProfessionalDetailsStep } from "@/components/forms/ProfessionalDetailsStep";
@@ -21,6 +22,7 @@ export default function App() {
   const [counselorsLoading, setCounselorsLoading] = useState(false);
   const [counselorsError, setCounselorsError] = useState(null);
   const [editingCounselorId, setEditingCounselorId] = useState(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // --- Data Fetching ---
   useEffect(() => {
@@ -33,6 +35,17 @@ export default function App() {
       setCounselorsLoading(false);
     }
   }, []);
+
+  // Auto-dismiss success messages after 5 seconds
+  useEffect(() => {
+    if (message.type === "success" && message.content) {
+      const timer = setTimeout(() => {
+        setMessage({ type: "", content: "" });
+      }, 5000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [message]);
 
   const fetchCounselors = async () => {
     setCounselorsLoading(true);
@@ -60,8 +73,14 @@ export default function App() {
   };
 
   // --- Handlers ---
-  const nextStep = () => setCurrentStep((prev) => Math.min(prev + 1, 3));
-  const prevStep = () => setCurrentStep((prev) => Math.max(prev - 1, 1));
+  const nextStep = (e) => {
+    if (e) e.preventDefault();
+    setCurrentStep((prev) => Math.min(prev + 1, 3));
+  };
+  const prevStep = (e) => {
+    if (e) e.preventDefault();
+    setCurrentStep((prev) => Math.max(prev - 1, 1));
+  };
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -80,6 +99,7 @@ export default function App() {
 
   const handleSetTab = (tab) => {
     setCurrentTab(tab);
+    setMobileMenuOpen(false);
     if (tab === "add" && !editingCounselorId) {
       handleResetForm();
     }
@@ -90,13 +110,13 @@ export default function App() {
 
   const handleEditClick = (counselor) => {
     setEditingCounselorId(counselor.id);
-    
+
     // Remove the +91 prefix from phone number if it exists
     let phoneNumber = counselor.phone_number || "";
     if (phoneNumber.startsWith(PHONE_PREFIX)) {
       phoneNumber = phoneNumber.slice(PHONE_PREFIX.length);
     }
-    
+
     setFormData({
       full_name: counselor.full_name,
       email: counselor.email,
@@ -127,6 +147,57 @@ export default function App() {
     setLoading(true);
     setMessage({ type: "", content: "" });
 
+    // Validation
+    if (!formData.full_name || formData.full_name.trim() === "") {
+      setMessage({
+        type: "error",
+        content: "Please enter the counselor's full name.",
+      });
+      setLoading(false);
+      setCurrentStep(1);
+      return;
+    }
+
+    if (!formData.phone_number || formData.phone_number.trim() === "") {
+      setMessage({
+        type: "error",
+        content: "Please enter a valid phone number.",
+      });
+      setLoading(false);
+      setCurrentStep(1);
+      return;
+    }
+
+    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      setMessage({
+        type: "error",
+        content: "Please enter a valid email address.",
+      });
+      setLoading(false);
+      setCurrentStep(1);
+      return;
+    }
+
+    if (formData.specializations.length === 0) {
+      setMessage({
+        type: "error",
+        content: "Please add at least one specialization.",
+      });
+      setLoading(false);
+      setCurrentStep(2);
+      return;
+    }
+
+    if (formData.languages.length === 0) {
+      setMessage({
+        type: "error",
+        content: "Please add at least one language.",
+      });
+      setLoading(false);
+      setCurrentStep(2);
+      return;
+    }
+
     // Add +91 prefix to phone number if not already present
     const phoneNumber = formData.phone_number.startsWith(PHONE_PREFIX)
       ? formData.phone_number
@@ -156,72 +227,99 @@ export default function App() {
     try {
       if (editingCounselorId) {
         // UPDATE
-        if (supabase) {
-          const { data, error } = await supabase
-            .from("counselors")
-            .update(newCounselorData)
-            .eq("id", editingCounselorId)
-            .select();
-          if (error) throw error;
+        if (!supabase) {
+          throw new Error("Database connection not available. Please check your internet connection.");
+        }
 
-          if (data && data.length > 0) {
-            setMessage({
-              type: "success",
-              content: `Successfully updated counselor: ${data[0].full_name}`,
-            });
-            setCounselors(
-              counselors.map((c) => (c.id === data[0].id ? data[0] : c))
-            );
-          } else {
-            setMessage({
-              type: "success",
-              content: "Successfully updated counselor.",
-            });
+        const { data, error } = await supabase
+          .from("counselors")
+          .update(newCounselorData)
+          .eq("id", editingCounselorId)
+          .select();
+        
+        if (error) {
+          if (error.code === "PGRST116") {
+            throw new Error("Counselor not found. They may have been deleted.");
           }
+          throw new Error(`Update failed: ${error.message}`);
+        }
 
-          handleResetForm();
-          setCurrentTab("view");
+        if (data && data.length > 0) {
+          setMessage({
+            type: "success",
+            content: `🎉 Successfully updated ${data[0].full_name}'s profile!`,
+          });
+          setCounselors(
+            counselors.map((c) => (c.id === data[0].id ? data[0] : c))
+          );
         } else {
           setMessage({
-            type: "error",
-            content: "Supabase client is not initialized.",
+            type: "success",
+            content: "✅ Counselor profile updated successfully!",
           });
         }
+
+        handleResetForm();
+        // Delay tab switch to show success message
+        setTimeout(() => setCurrentTab("view"), 1500);
       } else {
         // INSERT
-        if (supabase) {
-          const { data, error } = await supabase
-            .from("counselors")
-            .insert([newCounselorData])
-            .select();
-          if (error) throw error;
+        if (!supabase) {
+          throw new Error("Database connection not available. Please check your internet connection.");
+        }
 
-          if (data && data.length > 0) {
-            setMessage({
-              type: "success",
-              content: `Successfully added counselor: ${data[0].full_name}`,
-            });
-            setCounselors([data[0], ...counselors]);
-          } else {
-            setMessage({
-              type: "success",
-              content: "Successfully added counselor.",
-            });
+        const { data, error } = await supabase
+          .from("counselors")
+          .insert([newCounselorData])
+          .select();
+        
+        if (error) {
+          if (error.code === "23505") {
+            throw new Error("A counselor with this phone number already exists.");
           }
-          handleResetForm();
+          throw new Error(`Failed to add counselor: ${error.message}`);
+        }
+
+        if (data && data.length > 0) {
+          setMessage({
+            type: "success",
+            content: `🎉 Successfully added ${data[0].full_name} to the team!`,
+          });
+          setCounselors([data[0], ...counselors]);
         } else {
           setMessage({
-            type: "error",
-            content: "Supabase client is not initialized.",
+            type: "success",
+            content: "✅ New counselor added successfully!",
           });
         }
+        
+        handleResetForm();
+        // Scroll to top to show success message
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       }
     } catch (error) {
-      console.error("Error submitting counselor:", error.message);
+      console.error("Error submitting counselor:", error);
+      
+      // User-friendly error messages
+      let errorMessage = error.message;
+      
+      if (error.message.includes("Failed to fetch") || error.message.includes("NetworkError")) {
+        errorMessage = "❌ Network error. Please check your internet connection and try again.";
+      } else if (error.message.includes("JWT")) {
+        errorMessage = "❌ Session expired. Please refresh the page and try again.";
+      } else if (error.message.includes("permission")) {
+        errorMessage = "❌ You don't have permission to perform this action.";
+      } else if (!error.message.includes("❌") && !error.message.includes("🎉")) {
+        errorMessage = `❌ ${errorMessage}`;
+      }
+      
       setMessage({
         type: "error",
-        content: `Failed: ${error.message}`,
+        content: errorMessage,
       });
+      
+      // Scroll to top to show error message
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } finally {
       setLoading(false);
     }
@@ -249,22 +347,22 @@ export default function App() {
       )}
 
       {/* Form Actions */}
-      <div className="mt-10 flex items-center justify-between">
-        <div>
+      <div className="mt-6 sm:mt-8 lg:mt-10 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-0">
+        <div className="order-2 sm:order-1">
           <button
             type="button"
             onClick={handleResetForm}
-            className="rounded-md bg-white px-4 py-2 text-sm font-semibold text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-gray-50"
+            className="w-full sm:w-auto rounded-md bg-white px-4 py-2 text-sm font-semibold text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-gray-50 active:bg-gray-100 transition-colors"
           >
             Clear Form
           </button>
         </div>
-        <div className="flex gap-x-4">
+        <div className="flex gap-x-3 order-1 sm:order-2">
           {currentStep > 1 && (
             <button
               type="button"
-              onClick={prevStep}
-              className="rounded-md bg-white px-4 py-2 text-sm font-semibold text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-gray-50"
+              onClick={(e) => prevStep(e)}
+              className="flex-1 sm:flex-none rounded-md bg-white px-4 py-2 text-sm font-semibold text-slate-900 shadow-sm ring-1 ring-inset ring-slate-300 hover:bg-gray-50 active:bg-gray-100 transition-colors"
             >
               Previous
             </button>
@@ -272,8 +370,8 @@ export default function App() {
           {currentStep < 3 ? (
             <button
               type="button"
-              onClick={nextStep}
-              className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+              onClick={(e) => nextStep(e)}
+              className="flex-1 sm:flex-none rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 active:bg-indigo-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 transition-colors"
             >
               Next
             </button>
@@ -281,7 +379,7 @@ export default function App() {
             <button
               type="submit"
               disabled={loading || !supabase}
-              className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:opacity-50"
+              className="flex-1 sm:flex-none rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 active:bg-indigo-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {loading
                 ? "Submitting..."
@@ -297,8 +395,32 @@ export default function App() {
 
   return (
     <div className="flex min-h-screen w-full bg-slate-100 font-sans">
+      {/* Mobile Menu Button */}
+      <button
+        onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+        className="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-md bg-slate-900 text-white shadow-lg"
+      >
+        {mobileMenuOpen ? <CloseIcon /> : <MenuIcon />}
+      </button>
+
+      {/* Mobile Overlay */}
+      {mobileMenuOpen && (
+        <div
+          className="lg:hidden fixed inset-0 bg-black/50 z-40"
+          onClick={() => setMobileMenuOpen(false)}
+        />
+      )}
+
       {/* Sidebar Navigation */}
-      <nav className="w-64 flex-none bg-slate-900 text-slate-300 flex flex-col p-4 space-y-2">
+      <nav
+        className={`
+          fixed lg:static inset-y-0 left-0 z-40
+          w-64 flex-none bg-slate-900 text-slate-300 flex flex-col p-4 space-y-2
+          transform transition-transform duration-300 ease-in-out
+          lg:translate-x-0
+          ${mobileMenuOpen ? "translate-x-0" : "-translate-x-full"}
+        `}
+      >
         <div className="px-3 pb-4 mb-2 border-b border-slate-700">
           <h2 className="text-xl font-semibold text-white">Counselor HQ</h2>
         </div>
@@ -335,9 +457,9 @@ export default function App() {
       </nav>
 
       {/* Main Content Area */}
-      <main className="flex-1 p-8 overflow-auto">
+      <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-auto">
         {/* Dynamic Header */}
-        <h1 className="text-3xl font-bold tracking-tight text-slate-900 mb-6">
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 mb-4 sm:mb-6 mt-12 lg:mt-0">
           {currentTab === "add"
             ? editingCounselorId
               ? `Edit: ${formData.full_name}`

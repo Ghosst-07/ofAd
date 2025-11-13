@@ -4,21 +4,21 @@ import { Textarea } from "../ui/Textarea";
 
 export const BasicInfoStep = ({ formData, handleChange }) => {
   return (
-    <div className="grid grid-cols-1 gap-x-8 gap-y-8 md:grid-cols-3">
-      <div className="px-4 sm:px-0">
-        <h2 className="text-lg font-semibold leading-7 text-slate-900">
+    <div className="grid grid-cols-1 gap-6 lg:gap-8 lg:grid-cols-3">
+      <div className="px-0 sm:px-0">
+        <h2 className="text-base sm:text-lg font-semibold leading-7 text-slate-900">
           Basic Information
         </h2>
-        <p className="mt-1 text-sm leading-6 text-slate-600">
+        <p className="mt-1 text-xs sm:text-sm leading-6 text-slate-600">
           Core details for the counselor&apos;s public profile and internal
           identification.
         </p>
       </div>
 
-      <div className="bg-white shadow-sm ring-1 ring-slate-900/5 sm:rounded-xl md:col-span-2">
+      <div className="bg-white shadow-sm ring-1 ring-slate-900/5 rounded-lg sm:rounded-xl lg:col-span-2">
         <div className="p-4 sm:p-6">
-          <div className="grid max-w-2xl grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
-            <div className="sm:col-span-3">
+          <div className="grid max-w-2xl grid-cols-1 gap-x-4 gap-y-6 sm:gap-x-6 sm:grid-cols-6">
+            <div className="col-span-full sm:col-span-3">
               <Input
                 label="Full Name"
                 id="full_name"
@@ -29,7 +29,7 @@ export const BasicInfoStep = ({ formData, handleChange }) => {
                 autoComplete="name"
               />
             </div>
-            <div className="sm:col-span-3">
+            <div className="col-span-full sm:col-span-3">
               <Input
                 label="Email Address"
                 id="email"
@@ -40,7 +40,7 @@ export const BasicInfoStep = ({ formData, handleChange }) => {
                 autoComplete="email"
               />
             </div>
-            <div className="sm:col-span-3">
+            <div className="col-span-full sm:col-span-3">
               <PhoneInput
                 label="Phone Number"
                 id="phone_number"
@@ -50,7 +50,7 @@ export const BasicInfoStep = ({ formData, handleChange }) => {
                 autoComplete="tel"
               />
             </div>
-            <div className="sm:col-span-3">
+            <div className="col-span-full sm:col-span-3">
               <Input
                 label="Date of Birth"
                 id="date_of_birth"
@@ -59,7 +59,7 @@ export const BasicInfoStep = ({ formData, handleChange }) => {
                 onChange={handleChange}
               />
             </div>
-            <div className="sm:col-span-3">
+            <div className="col-span-full sm:col-span-6">
               <Input
                 label="Avatar URL"
                 id="avatar_url"
@@ -69,7 +69,7 @@ export const BasicInfoStep = ({ formData, handleChange }) => {
                 placeholder="https://example.com/avatar.png"
               />
             </div>
-            <div className="sm:col-span-6">
+            <div className="col-span-full">
               <Textarea
                 label="Biography"
                 id="bio"
