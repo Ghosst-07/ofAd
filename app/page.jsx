@@ -42,7 +42,7 @@ export default function App() {
       const timer = setTimeout(() => {
         setMessage({ type: "", content: "" });
       }, 5000);
-      
+
       return () => clearTimeout(timer);
     }
   }, [message]);
@@ -119,7 +119,7 @@ export default function App() {
 
     setFormData({
       full_name: counselor.full_name,
-      email: counselor.email,
+      email: counselor.email || "",
       phone_number: phoneNumber,
       avatar_url: counselor.avatar_url || "",
       bio: counselor.bio || "",
@@ -127,15 +127,15 @@ export default function App() {
       license_number: counselor.license_number || "",
       specializations: counselor.specializations || [],
       languages: counselor.languages || ["en"],
-      years_of_experience: counselor.years_of_experience,
-      rate_video_per_minute: counselor.rate_video_per_minute,
-      rate_voice_per_minute: counselor.rate_voice_per_minute,
-      rate_chat_per_minute: counselor.rate_chat_per_minute,
-      accepts_chat: counselor.accepts_chat,
-      accepts_voice: counselor.accepts_voice,
-      accepts_video: counselor.accepts_video,
-      is_active: counselor.is_active,
-      is_accepting_calls: counselor.is_accepting_calls,
+      years_of_experience: counselor.years_of_experience || 0,
+      rate_video_per_minute: counselor.rate_video_per_minute ?? 2.0,
+      rate_voice_per_minute: counselor.rate_voice_per_minute ?? 1.5,
+      rate_chat_per_minute: counselor.rate_chat_per_minute ?? 0.5,
+      accepts_chat: counselor.accepts_chat ?? true,
+      accepts_voice: counselor.accepts_voice ?? true,
+      accepts_video: counselor.accepts_video ?? true,
+      is_active: counselor.is_active ?? true,
+      is_accepting_calls: counselor.is_accepting_calls ?? true,
     });
     setMessage({ type: "", content: "" });
     setCurrentStep(1);
@@ -226,17 +226,41 @@ export default function App() {
 
     try {
       if (editingCounselorId) {
-        // UPDATE
+        // UPDATE - normalized schema uses auth_user_id FK, but we update by counselor.id
         if (!supabase) {
-          throw new Error("Database connection not available. Please check your internet connection.");
+          throw new Error(
+            "Database connection not available. Please check your internet connection."
+          );
         }
+
+        // Map to schema structure for update
+        const updatePayload = {
+          full_name: newCounselorData.full_name,
+          email: newCounselorData.email,
+          phone_number: newCounselorData.phone_number,
+          avatar_url: newCounselorData.avatar_url,
+          bio: newCounselorData.bio,
+          date_of_birth: newCounselorData.date_of_birth,
+          license_number: newCounselorData.license_number,
+          specializations: newCounselorData.specializations,
+          languages: newCounselorData.languages,
+          years_of_experience: newCounselorData.years_of_experience,
+          rate_video_per_minute: newCounselorData.rate_video_per_minute,
+          rate_voice_per_minute: newCounselorData.rate_voice_per_minute,
+          rate_chat_per_minute: newCounselorData.rate_chat_per_minute,
+          accepts_chat: newCounselorData.accepts_chat,
+          accepts_voice: newCounselorData.accepts_voice,
+          accepts_video: newCounselorData.accepts_video,
+          is_active: newCounselorData.is_active,
+          is_accepting_calls: newCounselorData.is_accepting_calls,
+        };
 
         const { data, error } = await supabase
           .from("counselors")
-          .update(newCounselorData)
+          .update(updatePayload)
           .eq("id", editingCounselorId)
           .select();
-        
+
         if (error) {
           if (error.code === "PGRST116") {
             throw new Error("Counselor not found. They may have been deleted.");
@@ -265,61 +289,73 @@ export default function App() {
       } else {
         // INSERT
         if (!supabase) {
-          throw new Error("Database connection not available. Please check your internet connection.");
+          throw new Error(
+            "Database connection not available. Please check your internet connection."
+          );
         }
 
-        const { data, error } = await supabase
-          .from("counselors")
-          .insert([newCounselorData])
-          .select();
-        
-        if (error) {
-          if (error.code === "23505") {
-            throw new Error("A counselor with this phone number already exists.");
-          }
-          throw new Error(`Failed to add counselor: ${error.message}`);
+        // Call Next.js API route (no Supabase CLI required)
+        const apiRes = await fetch("/api/create-counselor", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(newCounselorData),
+        });
+
+        const apiJson = await apiRes.json();
+        if (!apiRes.ok) {
+          throw new Error(apiJson.error || "Failed to create counselor");
         }
 
-        if (data && data.length > 0) {
+        const createdCounselor = apiJson.counselor;
+
+        if (createdCounselor) {
           setMessage({
             type: "success",
-            content: `🎉 Successfully added ${data[0].full_name} to the team!`,
+            content: `🎉 Successfully added ${createdCounselor.full_name} to the team!`,
           });
-          setCounselors([data[0], ...counselors]);
+          setCounselors([createdCounselor, ...counselors]);
         } else {
           setMessage({
             type: "success",
             content: "✅ New counselor added successfully!",
           });
         }
-        
+
         handleResetForm();
         // Scroll to top to show success message
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        window.scrollTo({ top: 0, behavior: "smooth" });
       }
     } catch (error) {
       console.error("Error submitting counselor:", error);
-      
+
       // User-friendly error messages
       let errorMessage = error.message;
-      
-      if (error.message.includes("Failed to fetch") || error.message.includes("NetworkError")) {
-        errorMessage = "❌ Network error. Please check your internet connection and try again.";
+
+      if (
+        error.message.includes("Failed to fetch") ||
+        error.message.includes("NetworkError")
+      ) {
+        errorMessage =
+          "❌ Network error. Please check your internet connection and try again.";
       } else if (error.message.includes("JWT")) {
-        errorMessage = "❌ Session expired. Please refresh the page and try again.";
+        errorMessage =
+          "❌ Session expired. Please refresh the page and try again.";
       } else if (error.message.includes("permission")) {
         errorMessage = "❌ You don't have permission to perform this action.";
-      } else if (!error.message.includes("❌") && !error.message.includes("🎉")) {
+      } else if (
+        !error.message.includes("❌") &&
+        !error.message.includes("🎉")
+      ) {
         errorMessage = `❌ ${errorMessage}`;
       }
-      
+
       setMessage({
         type: "error",
         content: errorMessage,
       });
-      
+
       // Scroll to top to show error message
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.scrollTo({ top: 0, behavior: "smooth" });
     } finally {
       setLoading(false);
     }
